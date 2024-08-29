@@ -4,7 +4,7 @@ require('dotenv').config();
 
 // Import variables from .env file
 const { PORT, MongoURI , SMTP_PASS } = process.env;
-// Rest of the code...
+
 const app = express();
 app.use(express.json());
 
@@ -15,26 +15,8 @@ mongoose.connect(MongoURI, {})
     .then(() => console.log('MongoDB connected...'))
     .catch(err => console.log(err));
 
-// Define a schema
-const userSchema = new mongoose.Schema({
-    name: String,
-    email: String,
-    password: String
-});
-
-// Create a model
-const User = mongoose.model('User', userSchema);
-
-// Example usage
-const newUser = new User({
-    name: 'John Doe',
-    email: 'john@example.com',
-    password: 'password123'
-});
-
-newUser.save()
-    .then(user => console.log(user))
-    .catch(err => console.log(err));
+const User = require('./db/models/userModel');
+const otpModel = require('./db/models/otpModel');
 
 
 
@@ -46,19 +28,20 @@ app.post('/login', (req, res) => {
     const { email, password } = req.body;
 
     // Check if email and password are correct
-    if (email === 'example@example.com' && password === 'password') {
-        // Return user's name if credentials are correct
-        const user = {
-            name: 'John Doe'
-        };
-        res.status(200).json({ name: user.name });
-    } else {
-        // Return error message if credentials are incorrect
-        res.status(401).json({ error: 'Invalid credentials' });
-    }
+    User.findOne({ email, password })
+    .then(user => {
+        if (user) {
+            res.status(200).json({ name: user.name });
+        } else {
+            res.status(401).json({ error: 'Invalid credentials' });
+        }
+    })
+    .catch(err => res.status(500).json({ error: 'Error checking for user' }));
+
 });
 
-app.post('/signup', (req, res) => {
+// for primary check of user details and sending otp
+app.post('/sendOtp', async(req, res) => {
     const { name, email, password, confirmPassword } = req.body;
 
     // Check if all fields are provided
@@ -74,6 +57,16 @@ app.post('/signup', (req, res) => {
         return;
     }
 
+    // Check if user with the same email already exists
+    User.findOne({ email })
+        .then(user => {
+            if (user) {
+                res.status(400).json({ error: 'User with the same email already exists' });
+                return;
+            }
+        })
+        .catch(err => res.status(500).json({ error: 'Error checking for user' }));
+    
     // Check if password is valid
     if (password.length < 6) {
         res.status(400).json({ error: 'Password must be at least 6 characters long' });
@@ -84,13 +77,48 @@ app.post('/signup', (req, res) => {
         res.status(400).json({error : "The passwords does not match!"})
         return;
     }
-    // send otp
-    let otp = sendOTP(email);
-    // save the otp in a table with email and time
 
+    try {
+        // First, delete all unused OTPs for the email
+        await otpModel.deleteMany({ email });
+        console.log("Existing OTPs deleted");
+    
+        // Send OTP
+        let otp = sendOTP(email);
+    
+        // Save the new OTP in the table with email and time
+        const newOtp = new otpModel({
+            email,
+            otp
+        });
+    
+        await newOtp.save();
+        res.status(200).json({ message: "OTP sent and saved successfully" });
+    } catch (err) {
+        console.error("Error processing OTP:", err);
+        res.status(500).json({ error: "Internal server error" });
+    }
 
-    res.status(200).json({ message: 'Details are valid. OTP sent to the email.'});
 });
+
+// this is for the final signup and will activate only after the otp has been verified
+// no checks are done here
+app.post('/signup', (req, res) => {
+    const { name, email, password } = req.body;
+    
+     // Create a new user
+    const newUser = new User({
+        name,
+        email,
+        password
+    });
+
+    // Save the user to the database
+    newUser.save()
+        .then(user => res.status(200).json({ message: 'User created successfully' }))
+        .catch(err => res.status(500).json({ error: 'Error creating user' }));
+});
+
 
 const sendOTP = (email) => {
     // Generate a random 6-digit number
@@ -144,12 +172,16 @@ app.post('/send-otp', (req, res) => {
 app.post('/check-otp',(req,res)=>{
     const {email, otp} = req.body;
     // checking in the otp table for the corresponding otp
-    if(otp == 123456){
-        res.status(200).json({message : "otp verified"});
-    }
-    else{
-        res.status(400).json({error : "Otp did not match"});
-    }
+    otpModel.findOne({email})
+    .then(OTP => {
+        if(OTP.otp == otp && OTP.createdAt > Date.now() - 5*60*1000){
+            res.status(200).json({message : "otp verified"});
+        }
+        else{
+            res.status(400).json({error : "Otp did not match or has expired."});
+        }
+    })
+    .catch(err => res.status(500).json({ error: 'Error checking for otp' }));
 })
 
 app.listen(PORT, ()=>{
