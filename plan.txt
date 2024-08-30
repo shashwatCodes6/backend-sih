@@ -23,3 +23,9 @@ how signup works:
 1.) post sendOtp request => if okay then otp sent
 2.) post check-otp request => if okay then signup request sent
 3.) signup will create an entry in the database
+
+LOGS
+##  The basic backend is complete with login route.
+##  The signup page with otp is working fine.
+##  The @gradio/client does not have a CommonJS module so I had to change the JS format of the complete project from CommonJS to ES Module.
+##  The ML Model API is integrated successfully.

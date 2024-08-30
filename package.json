@@ -6,6 +6,7 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
+  "type" : "module",
   "author": "Aditya",
   "license": "ISC",
   "dependencies": {
@@ -15,5 +16,8 @@
     "mongoose": "^8.6.0",
     "nodemailer": "^6.9.14",
     "nodemon": "^3.1.4"
+  },
+  "devDependencies": {
+    "@gradio/client": "^1.5.1"
   }
 }
