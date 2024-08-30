@@ -3,6 +3,7 @@ import mongoose from 'mongoose';
 import dotenv from 'dotenv';
 import otpModel from './db/models/otpModel.js';
 import User from './db/models/userModel.js';
+import cors from 'cors'
 
 dotenv.config();
 
@@ -12,6 +13,9 @@ const { PORT, MongoURI , SMTP_PASS } = process.env;
 const app = express();
 app.use(express.json());
 
+app.use(cors({
+    origin: ['http://localhost:5173']
+}))
 
 mongoose.connect(MongoURI, {})
     .then(() => console.log('MongoDB connected...'))
@@ -186,6 +190,7 @@ app.post('/check-otp',(req,res)=>{
 import predictDisease from './api/predictDisease.js';
 app.post('/predictDisease', async(req, res) => {
     const { text } = req.body;
+    // console.log("hi", text)
     try{
         const result = await predictDisease(text);
         res.status(200).json(result);
