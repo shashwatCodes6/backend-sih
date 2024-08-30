@@ -3,40 +3,26 @@ import mongoose from 'mongoose';
 import dotenv from 'dotenv';
 import otpModel from './db/models/otpModel.js';
 import User from './db/models/userModel.js';
+import cors from 'cors'
 
 dotenv.config();
 
-// Import variables from .env file
+
 const { PORT, MongoURI , SMTP_PASS } = process.env;
 
 const app = express();
 app.use(express.json());
 
+app.use(cors({
+    origin: ['http://localhost:5173']
+}))
 
 mongoose.connect(MongoURI, {})
     .then(() => console.log('MongoDB connected...'))
     .catch(err => console.log(err));
 
 
-app.get('/', (req,res)=>{
-    res.status(200).json({Backend : "Active"});
-})
-
-app.post('/login', (req, res) => {
-    const { email, password } = req.body;
-
-    // Check if email and password are correct
-    User.findOne({ email, password })
-    .then(user => {
-        if (user) {
-            res.status(200).json({ name: user.name });
-        } else {
-            res.status(401).json({ error: 'Invalid credentials' });
-        }
-    })
-    .catch(err => res.status(500).json({ error: 'Error checking for user' }));
-
-});
+app.use('/api/user', userRouter)
 
 // for primary check of user details and sending otp
 app.post('/sendOtp', async(req, res) => {
@@ -104,7 +90,6 @@ app.post('/sendOtp', async(req, res) => {
 app.post('/signup', (req, res) => {
     const { name, email, password } = req.body;
     
-     // Create a new user
     const newUser = new User({
         name,
         email,
@@ -182,18 +167,15 @@ app.post('/check-otp',(req,res)=>{
     .catch(err => res.status(500).json({ error: 'Error checking for otp' }));
 })
 
-// predictDisease API from ML Model
-import predictDisease from './api/predictDisease.js';
-app.post('/predictDisease', async(req, res) => {
-    const { text } = req.body;
-    try{
-        const result = await predictDisease(text);
-        res.status(200).json(result);
-    }
-    catch(err){
-        res.status(500).json({ error: 'Error predicting disease' });
-    }
-});
+
+
+import chatbotRouter from './routes/chatbot.route.js';
+import locationRouter from './routes/location.route.js';
+import { userRouter } from './routes/user.routes.js';
+
+app.use('/api/places', locationRouter)
+app.use('/api/chatbot', chatbotRouter)
+
 
 app.listen(PORT, ()=>{
     console.log(`Server is listening on port ${PORT}`);
