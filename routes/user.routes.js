@@ -1,12 +1,14 @@
 import express from 'express'
-import { loginUser, optSend } from '../controllers/user.controller.js';
+import { loginUser, logoutUser, registerUser } from '../controllers/user.controller.js';
+import { verifyJWT } from '../middleware/auth.middlware.js';
 
 
 const userRouter = express.Router()
 
 
 userRouter.post('/login', loginUser);
-userRouter.post('/sendOtp', optSend);
+userRouter.post('/signup', registerUser);
+userRouter.post('/logout', verifyJWT, logoutUser)
 
 
 
