@@ -5,6 +5,7 @@ import cors from 'cors'
 import chatbotRouter from './routes/chatbot.route.js';
 import locationRouter from './routes/location.route.js';
 import { userRouter } from './routes/user.routes.js';
+import healthRouter from './routes/healthMetrics.route.js';
 import cookieParser from 'cookie-parser';
 
 
@@ -29,6 +30,7 @@ mongoose.connect(MongoURI, {})
 app.use('/api/user', userRouter)
 app.use('/api/places', locationRouter)
 app.use('/api/chatbot', chatbotRouter)
+app.use('/api/metric',healthRouter);
 
 
 
