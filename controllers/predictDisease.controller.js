@@ -14,10 +14,5 @@ async function predictDisease(text) {
     return result.data;
 }
 
-predictDisease("I have a headache")
-  .then(console.log("ML Model is up"))
-  .catch(err => {
-    console.log("Error loading model")
-  });
-
-export default predictDisease;
+  
+export {predictDisease};
