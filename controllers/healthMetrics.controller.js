@@ -3,24 +3,39 @@ import healthMetrics from '../db/models/metricsModel.js';
 
 const update=async (userId,inputMetrics)=>{
     try {
-        const oldMetrics=await healthMetrics.findOne({userId});
-        const today=newDate().setHours(0,0,0,0);
+        const today = new Date().setHours(0, 0, 0, 0);
 
-        const todayMetricsIndex=oldMetrics.metrics.findIndex(metric=>
-            newDate(metric.date).setHours(0,0,0,0)===today
+    // Find if today's metrics already exist
+    const oldMetrics = await healthMetrics.findOne({
+        userId,
+        'metrics.date': { $gte: today }
+    });
+
+    if (oldMetrics) {
+        // If today's metrics exist, update them
+        await healthMetrics.findOneAndUpdate(
+            { userId, 'metrics.date': { $gte: today } },
+            {
+                $set: { 'metrics.$': inputMetrics }
+            }
         );
+        // console.log('Today\'s metrics updated successfully');
+    } else {
+        // If no metrics for today, add a new entry
+        await healthMetrics.findOneAndUpdate(
+            { userId },
+            {
+                $push: {
+                    metrics: inputMetrics
+                }
+            },
+            { new: true, upsert: true }
+        );
+        // console.log('New metrics added successfully');
+    }
 
+    return { updated: true };
 
-        if(todayMetricsIndex!==-1){// aaj ke hi update krra user firse
-            oldMetrics[todayMetricsIndex]=inputMetrics;
-        }
-        else{
-            oldMetrics.metrics.push(inputMetrics);
-        }
-
-        await oldMetrics.save();
-        console.log('metrics updated successfully');
-        return {updated:true};
     } catch (error) {
         console.log('error in updating metrics',error);
         return {updated:false};
@@ -29,12 +44,14 @@ const update=async (userId,inputMetrics)=>{
 
 const updateMetrics=async (req,res)=>{
     try {
-        const {metrics}=req.body;
-        const {updated}=updateMetrics(metrics);
+        const metrics=req.body.metrics;
+        // console.log(req.body)
+        const {updated}=await update(req.body.user._id, metrics);
+        // console.log(updated)
         if(updated){
             return res.status(200).json({message:"metrics updated successfully"});
-        }
-        return res.status(500).json({message:"koi dikkat aa gyi lagta hai"});
+        }else
+            return res.status(500).json({message:"koi dikkat aa gyi lagta hai"});
 
     } catch (error) {
         console.log(error);

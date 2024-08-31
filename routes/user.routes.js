@@ -13,4 +13,3 @@ userRouter.post('/sendOtp', optSend);
 export {
     userRouter
 }
-

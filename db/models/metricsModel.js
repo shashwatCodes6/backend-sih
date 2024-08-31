@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 import User from "./userModel.js";
+
 const dailyMetricSchema=new mongoose.Schema({
     date:{
         type:Date,
@@ -16,6 +17,7 @@ const dailyMetricSchema=new mongoose.Schema({
     ECG:String,
     BO:Number,
 });
+
 const healthMetricSchema=new mongoose.Schema({
     userId:{
         type:mongoose.Schema.Types.ObjectId,
