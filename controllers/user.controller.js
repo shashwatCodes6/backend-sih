@@ -46,7 +46,7 @@ const loginUser = async (req, res) => {
     // if not match, return error
     // else return access, refresh tokens
     const { email, password } = req.body;
-    console.log(req.body)
+    // console.log(req.body)
     if(!email){
         return res.status(401).json({message: "credentials are invalid"});
     }
@@ -82,7 +82,13 @@ const loginUser = async (req, res) => {
 const logoutUser = async (req, res) => {
     // validate JWT
     // delete refreshToken
-    const token = req.cookies.refreshToken.split(' ')[1];
+    let token = null
+    if(req.header("Authorization")){
+        token = req.header("Authorization").split(' ')[1];
+    }
+    if(!token){
+        return res.status(400).json({message: "invalid req"})
+    }
     const dbID = jwt.decode(token);
     const user = await User.findById(dbID);
     if(user.refreshToken)

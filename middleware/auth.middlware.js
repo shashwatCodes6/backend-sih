@@ -3,12 +3,20 @@ import User from '../db/models/userModel.js';
 
 
 export const verifyJWT = async (req, res, next) => {
-    const token = req.cookies.refreshToken.split(' ')[1];
-    console.log(token)
-    
-    const response = jwt.verify(token, process.env.REFRESH_TOKEN_SECRET);
-    console.log(token, response);
-    if(!response){
+    // console.log(req.header("Authorization"))
+    let token = null
+    if(req.header("Authorization")){
+        token = req.header("Authorization").split(' ')[1];
+    }
+    if(!token){
+        return res.status(400).json({message: "invalid req"})
+    }
+
+    console.log(token);
+    try{
+        const response = jwt.verify(token, process.env.REFRESH_TOKEN_SECRET);
+
+    }catch(err){
         return res.status(401).json({message: "invalid token"});
     }
     const dbID = jwt.decode(token);
