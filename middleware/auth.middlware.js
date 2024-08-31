@@ -12,7 +12,7 @@ export const verifyJWT = async (req, res, next) => {
         return res.status(400).json({message: "invalid req"})
     }
 
-    console.log(token);
+    // console.log(token);
     try{
         const response = jwt.verify(token, process.env.REFRESH_TOKEN_SECRET);
 

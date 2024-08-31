@@ -15,4 +15,3 @@ userRouter.post('/logout', verifyJWT, logoutUser)
 export {
     userRouter
 }
-

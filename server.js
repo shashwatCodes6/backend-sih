@@ -30,7 +30,7 @@ mongoose.connect(MongoURI, {})
 app.use('/api/user', userRouter)
 app.use('/api/places', locationRouter)
 app.use('/api/chatbot', chatbotRouter)
-app.use('/api/metric',healthRouter);
+app.use('/api/metrics',healthRouter);
 
 
 
