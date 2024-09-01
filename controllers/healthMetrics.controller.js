@@ -41,6 +41,15 @@ const update=async (userId,inputMetrics)=>{
         return {updated:false};
     }
 }
+const fetch=async (userId)=>{
+    try {
+        const metrics=await healthMetrics.findOne({userId});
+        console.log('ye tha db me',metrics.metrics);
+        return metrics.metrics;
+    } catch (error) {
+        console.log("fetch krne me dikkat",error);
+    }
+}
 
 const updateMetrics=async (req,res)=>{
     try {
@@ -58,4 +67,15 @@ const updateMetrics=async (req,res)=>{
         return res.status(500).json({message:"koi dikkat aa gyi lagta hai"});
     }
 }
-export default updateMetrics;
+const fetchMetrics=async (req,res)=>{
+    try {
+        const metrics=await fetch(req.body.user._id);
+        console.log(req.body.user._id,metrics);
+        return res.status(200).json({metrics:metrics});
+
+    } catch (error) {
+        console.log(error);
+        return res.status(500).json({message:"koi dikkat aa gyi lagta hai"});
+    }
+}
+export {updateMetrics,fetchMetrics};

@@ -14,7 +14,6 @@ const dailyMetricSchema=new mongoose.Schema({
     BW:Number,
     HR:Number,
     BSL:Number,
-    ECG:String,
     BO:Number,
 });
 
