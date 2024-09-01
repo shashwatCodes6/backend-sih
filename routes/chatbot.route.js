@@ -1,6 +1,8 @@
 import express from 'express'
 import { predictDisease } from '../controllers/predictDisease.controller.js';
-import converse from '../controllers/mistral.controller.js';
+import converse from '../controllers/groq.controller.js';
+import { verifyJWT } from '../middleware/auth.middlware.js';
+
 
 
 const chatbotRouter = express.Router()
@@ -25,9 +27,9 @@ function responseCheck(response){
     return false;
 }
 
-chatbotRouter.post('/converse', async(req, res) => {
+chatbotRouter.post('/converse', verifyJWT, async(req, res) => {
     const { newMessage, messages } = req.body;
-    console.log("yaha hu: ", newMessage, messages);
+    // console.log("yaha hu: ", newMessage, messages);
     try{
 
         const response = await converse(newMessage, messages);

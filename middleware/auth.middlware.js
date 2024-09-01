@@ -3,11 +3,11 @@ import User from '../db/models/userModel.js';
 
 
 export const verifyJWT = async (req, res, next) => {
-    // console.log(req.header("Authorization"))
     let token = null
     if(req.header("Authorization")){
         token = req.header("Authorization").split(' ')[1];
     }
+    // console.log(req.header("Authorization").split(' '));
     if(!token){
         return res.status(400).json({message: "invalid req"})
     }
