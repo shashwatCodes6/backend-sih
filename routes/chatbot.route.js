@@ -26,7 +26,7 @@ function responseCheck(response){
     }
     return false;
 }
-
+// verifyJWT,
 chatbotRouter.post('/converse', verifyJWT, async(req, res) => {
     const { newMessage, messages } = req.body;
     // console.log("yaha hu: ", newMessage, messages);
@@ -37,8 +37,17 @@ chatbotRouter.post('/converse', verifyJWT, async(req, res) => {
 
         if(responseCheck(response[response.length-1].content)){
             console.log("predicting disease.....................");
+            console.log(response[response.length-1].content);
             const result = await predictDisease(response[response.length-1].content);
-            res.status(200).json(result);
+            let temp = "";
+            for(let i = 0; i < result.length; i++){
+                if(result[i] === ':'){
+                    break;
+                }
+                temp += result[i];
+            }
+            response[response.length-1].content += "So according to the symptoms you have provided, you might have " + temp;
+            res.status(200).json(response);
             return;
         }
         res.status(200).json(response);
